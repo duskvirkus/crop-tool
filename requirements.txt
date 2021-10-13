@@ -2,3 +2,4 @@ cython
 pgen
 glfw
 imgui[full]
+opencv-python

@@ -1,3 +1,6 @@
+from argparse import ArgumentParser
+from typing import Any
+
 import glfw
 import imgui
 
@@ -9,8 +12,7 @@ class Window:
 
     def __init__(
         self,
-        width: int,
-        height: int,
+        kwargs: Any,
         window_name: str = 'Crop Tool',
     ):
         imgui.create_context()
@@ -20,8 +22,8 @@ class Window:
             exit(1)
 
         self.window = glfw.create_window(
-            width,
-            height,
+            kwargs['width'],
+            kwargs['height'],
             window_name,
             None,
             None
@@ -50,3 +52,10 @@ class Window:
         imgui.render()
         self.impl.render(imgui.get_draw_data())
         glfw.swap_buffers(self.window)
+
+    @staticmethod
+    def add_window_args(parent_parser: ArgumentParser) -> ArgumentParser:
+        parser = parent_parser.add_argument_group("Window Args")
+        parser.add_argument("--width", help='Starting window width. (default: %(default)s)', type=int, default=1280)
+        parser.add_argument("--height", help='Starting window height. (default: %(default)s)', type=int, default=720)
+        return parent_parser
