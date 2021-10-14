@@ -18,10 +18,12 @@ def main():
 
     global args
     global window
+    global imqueue
 
     args = parse_args()
 
     window = gui.Window(vars(args))
+    imqueue = imqueue.ImQueue(vars(args))
 
     while window.keep_alive():
         window.render_frame()
