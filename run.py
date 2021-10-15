@@ -48,7 +48,7 @@ def main():
 
     while not should_exit():
 
-        controls.render_frame(imqueue)
+        controls.render_frame(imqueue, editor.update_image)
         editor.update()
         editor.display()
 

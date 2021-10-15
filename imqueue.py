@@ -184,6 +184,10 @@ class ImQueue:
         self.queue_position -= 1
         return True
 
+    def set_position(self, pos):
+        if pos >= 0 and pos < len(self.items) - 1:
+            self.queue_position = pos
+
     def save_remaining_edits(self):
         for i in range(len(self.items)):
                 item = self.items[i]
@@ -201,6 +205,14 @@ class ImQueue:
         if current.loaded():
             return current.img
         return None
+
+    def back(self):
+        if self.queue_position > 1:
+            self.queue_position -= 1
+
+    def advance(self):
+        if self.queue_position < len(self.items) - 1:
+            self.queue_position += 1
 
     @staticmethod
     def add_im_queue_args(parent_parser: ArgumentParser) -> ArgumentParser:

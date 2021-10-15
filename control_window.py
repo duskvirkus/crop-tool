@@ -40,7 +40,7 @@ class ControlWindow:
     def keep_alive(self) -> bool:
         return not glfw.window_should_close(self.window)
 
-    def render_frame(self, queue) -> None:
+    def render_frame(self, queue, update_callback) -> None:
         glfw.poll_events()
         self.impl.process_inputs()
 
@@ -49,22 +49,24 @@ class ControlWindow:
         gl.glClearColor(0., 0., 0., 1.)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
-        self.file_list(queue)
+        self.file_list(queue, update_callback)
 
         imgui.render()
         self.impl.render(imgui.get_draw_data())
         glfw.swap_buffers(self.window)
 
 
-    def file_list(self, queue):
+    def file_list(self, queue, update_callback):
 
         imgui.begin("queue list")
 
         imgui.listbox_header("", 400, 600)
 
+        selected_list = [i == queue.queue_position for i in range(len(queue.items))]
+
         for i in range(len(queue.items)):
             item = queue.items[i]
-            imgui.selectable(item.gui_readout(), False)
+            _, selected_list[i] = imgui.selectable(item.gui_readout(), selected_list[i])
             # imgui.text(item.short_name())
             if imgui.is_item_hovered():
                 imgui.set_tooltip(item.file_location)
@@ -74,6 +76,13 @@ class ControlWindow:
 
         # imgui.selectable("Selected", True)
         # imgui.selectable("Not Selected", False)
+
+        print(selected_list)
+
+        for i in range(len(selected_list)):
+            if selected_list[i] and i != queue.queue_position:
+                queue.set_position(i)
+                update_callback()
 
         imgui.listbox_footer()
 

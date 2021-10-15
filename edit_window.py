@@ -30,6 +30,14 @@ class EditWindow:
         if k == 27: # esc
             self.escaped = True
 
+        if k == 97: # a
+            self.queue.back()
+            self.update_image()
+
+        if k == 100: # d
+            self.queue.advance()
+            self.update_image()
+
     def display(self):
 
         cv2.imshow('Editor', self.temp_img)
