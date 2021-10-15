@@ -77,8 +77,6 @@ class ControlWindow:
         # imgui.selectable("Selected", True)
         # imgui.selectable("Not Selected", False)
 
-        print(selected_list)
-
         for i in range(len(selected_list)):
             if selected_list[i] and i != queue.queue_position:
                 queue.set_position(i)
