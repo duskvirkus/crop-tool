@@ -41,7 +41,7 @@ def main():
 
     # wait for first image to load
     while not imqueue.items[0].loaded():
-        print('loading first image ...')
+        # print('loading first image ...')
         time.sleep(1)
 
     editor = edit_window.EditWindow(imqueue)

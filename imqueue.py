@@ -124,9 +124,9 @@ class ImQueueItem:
         self.edit_counter += 1
         return edit_id
 
-    def add_edit(self, mode, data) -> None:
+    def add_edit(self, out_dir,  mode, data) -> None:
         if mode == 'rect':
-            self.edits.append(RectEditInfo(self, '/home/duskvirkus/dev/dataset-tools-2/crop-tool/test', 'test', self.next_edit_id(), data))
+            self.edits.append(RectEditInfo(self, out_dir, self.short_name().split('.')[0], self.next_edit_id(), data))
         else:
             raise Exception('Unknown Mode!')
 
@@ -150,7 +150,7 @@ class ImQueue:
         kwargs: Any,
     ):
         self.input_directories = kwargs['input_directories']
-        print(self.input_directories)
+        self.out_directory = kwargs['out_directory']
         self.save_format: ImFormat = kwargs['save_format']
         
         self.items = []
@@ -162,6 +162,8 @@ class ImQueue:
 
         self.loader = ImageLoaderThread(0, 'image_load_thread', self)
         self.loader.start()
+
+        self.saver = ImageSaverThread(1, 'image_saver_thread', self)
 
     def __del__(self):
 
@@ -224,12 +226,13 @@ class ImQueue:
             self.queue_position += 1
 
     def add_edit(self, mode, data) -> None:
-        self.items[self.queue_position].add_edit(mode, data)
+        self.items[self.queue_position].add_edit(self.out_directory, mode, data)
 
     @staticmethod
     def add_im_queue_args(parent_parser: ArgumentParser) -> ArgumentParser:
         parser = parent_parser.add_argument_group("ImQueue Args")
         parser.add_argument("-i", "--input_directories", help='Directories to load images from. Formated in paths seperated by spaces.', type=str, required=True)
+        parser.add_argument("-o", "--out_directory", help='Directory to save images to. (default: %(default)s)', default='./output')
         parser.add_argument("--save_format", help='file extension ["png","jpg"] (default: %(default)s)', default='png')
         return parent_parser
 
@@ -262,6 +265,7 @@ class EditInfo(abc.ABC):
 
     def save(self):
         edited = self.apply_edit()
+        os.makedirs(self.save_loc, exist_ok=True)
         cv2.imwrite(self.save_path(), edited, formatToCVFormat(self.format))
 
     def save_path(self):
