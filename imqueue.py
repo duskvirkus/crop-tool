@@ -4,6 +4,7 @@ import abc
 from argparse import ArgumentParser
 import os
 import threading
+import time
 
 import cv2
 import numpy as np
@@ -22,13 +23,60 @@ class ImageLoaderThread(threading.Thread):
         self.done = True
 
 def load_queue_images(thread_name, thread_id, queue):
+
+    while queue.continue_loading_images:
+
+        memory_available = check_memory_usage()
+        sleep = True
+        
+        if memory_available:
+            for i in range(len(queue.items)):
+                sleep = True
+                item = queue.items[i]
+                if not item.loaded():
+
+                    item.lock.acquire()
+                    item.load()
+                    item.lock.release()
+
+                    sleep = False
+                    break
+
+        if sleep:
+            time.sleep(10)
+
+
+def check_memory_usage() -> bool:
+
+    # sys.getsizeof(object)
+
+    # check for images that need to be freed
+
+    # run gc
+
+    # compare usage and return
+
+    return True
+
+
+class ImageSaverThread(threading.Thread):
+
+    def __init__(self, thread_id, name, queue):
+        threading.Thread.__init__(self)
+        self.thread_id = thread_id
+        self.name = name
+        self.queue = queue
+
+    def run(self):
+        load_queue_images(self.name, self.thread_id, self.queue)
+
+def save_queue_images(thread_name, thread_id, queue):
     for i in range(len(queue.items)):
         item = queue.items[i]
-        if item.img == None:
-            item.lock.acquire()
-            item.img = cv2.imread(item.file_location)
-            item.lock.release()
-
+        for j in range(len(item.edits)):
+            edit = item.edits[j]
+            if not edit.saved():
+                edit.save()
 class ImFormat(Enum):
     PNG = 0,
     JPG = 1,
@@ -64,7 +112,7 @@ class ImQueueItem:
         self.lock = threading.Lock()
 
     def loaded(self) -> bool:
-        return self.img is None
+        return self.img is not None
 
     def load(self) -> None:
         self.img = cv2.imread(self.file_location)
@@ -73,6 +121,18 @@ class ImQueueItem:
         edit_id = self.edit_counter
         self.edit_counter += 1
         return edit_id
+
+    def short_name(self) -> str:
+        return self.file_location.split('/')[-1]
+
+    def gui_readout(self) -> str:
+        ret = ''
+        if self.loaded():
+            ret += '|X| '
+        else:
+            ret += '| | '
+        ret += self.short_name()
+        return ret
 
 class ImQueue:
 
@@ -88,8 +148,19 @@ class ImQueue:
         self.queue_position = 0
         self.populate_queue()
 
+        self.continue_loading_images = True
+        self.continue_saving_image = True
+
         self.loader = ImageLoaderThread(0, 'image_load_thread', self)
         self.loader.start()
+
+    def __del__(self):
+
+        self.continue_loading_images = False
+        self.continue_saving_image = False
+
+        self.save_remaining_edits()
+
 
     def populate_queue(self) -> None:
         in_dirs = self.input_directories.split(' ')
@@ -113,6 +184,24 @@ class ImQueue:
         self.queue_position -= 1
         return True
 
+    def save_remaining_edits(self):
+        for i in range(len(self.items)):
+                item = self.items[i]
+                for j in range(len(item.edits)):
+                    edit = item.edits[j]
+                    if not edit.saved():
+                        item.lock.acquire()
+                        edit.lock.acquire()
+                        edit.save()
+                        edit.lock.release()
+                        item.lock.release()
+
+    def get_current_image(self):
+        current = self.items[self.queue_position]
+        if current.loaded():
+            return current.img
+        return None
+
     @staticmethod
     def add_im_queue_args(parent_parser: ArgumentParser) -> ArgumentParser:
         parser = parent_parser.add_argument_group("ImQueue Args")
@@ -133,6 +222,8 @@ class EditInfo(abc.ABC):
         self.save_loc = save_loc
         self.file_prefix = file_prefix
         self.edit_id = edit_id
+
+        self.lock = threading.Lock()
 
         if os.isfile(self.isfile(self.save_path())):
             new_file_prefix = self.file_prefix + '-'

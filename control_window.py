@@ -8,7 +8,7 @@ import OpenGL.GL as gl
 
 from imgui.integrations.glfw import GlfwRenderer
 
-class Window:
+class ControlWindow:
 
     def __init__(
         self,
@@ -40,7 +40,7 @@ class Window:
     def keep_alive(self) -> bool:
         return not glfw.window_should_close(self.window)
 
-    def render_frame(self) -> None:
+    def render_frame(self, queue) -> None:
         glfw.poll_events()
         self.impl.process_inputs()
 
@@ -49,13 +49,59 @@ class Window:
         gl.glClearColor(0., 0., 0., 1.)
         gl.glClear(gl.GL_COLOR_BUFFER_BIT)
 
+        self.file_list(queue)
+
         imgui.render()
         self.impl.render(imgui.get_draw_data())
         glfw.swap_buffers(self.window)
 
+
+    def file_list(self, queue):
+
+        imgui.begin("queue list")
+
+        imgui.listbox_header("", 400, 600)
+
+        for i in range(len(queue.items)):
+            item = queue.items[i]
+            imgui.selectable(item.gui_readout(), False)
+            # imgui.text(item.short_name())
+            if imgui.is_item_hovered():
+                imgui.set_tooltip(item.file_location)
+            # imgui.next_column()
+            # imgui.text(str(item.loaded()))
+            # imgui.next_column()
+
+        # imgui.selectable("Selected", True)
+        # imgui.selectable("Not Selected", False)
+
+        imgui.listbox_footer()
+
+        imgui.end()
+
+        # imgui.begin("")
+        # imgui.columns(2, 'fileList')
+        # imgui.text("File")
+        # imgui.next_column()
+        # imgui.text("Loaded?")
+        # imgui.next_column()
+
+        # for i in range(len(queue.items)):
+        #     item = queue.items[i]
+        #     imgui.text(item.short_name())
+        #     if imgui.is_item_hovered():
+        #         imgui.set_tooltip(item.file_location)
+        #     imgui.next_column()
+        #     imgui.text(str(item.loaded()))
+        #     imgui.next_column()
+
+
+        # imgui.columns(1)
+        # imgui.end()
+
     @staticmethod
     def add_window_args(parent_parser: ArgumentParser) -> ArgumentParser:
         parser = parent_parser.add_argument_group("Window Args")
-        parser.add_argument("--width", help='Starting window width. (default: %(default)s)', type=int, default=1280)
+        parser.add_argument("--width", help='Starting window width. (default: %(default)s)', type=int, default=400)
         parser.add_argument("--height", help='Starting window height. (default: %(default)s)', type=int, default=720)
         return parent_parser
