@@ -31,22 +31,22 @@ class EditWindow:
 
     def update(self):
         k = cv2.waitKey(33)
-        # print(k)
 
         if k == 27: # esc
             self.escaped = True
 
-        if k == 97: # a
+        if k == 122: # z
             self.queue.back()
             self.update_image()
 
-        if k == 100: # d
+        if k == 120: # x
             self.queue.advance()
             self.update_image()
 
     def display(self):
 
-        cv2.imshow('Editor', self.draw_img)
+        if self.draw_img is not None:
+            cv2.imshow('Editor', self.draw_img)
 
     def update_image(self):
         img = self.queue.get_current_image()

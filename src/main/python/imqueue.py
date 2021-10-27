@@ -147,15 +147,17 @@ class ImQueue:
 
     def __init__(
         self,
-        kwargs: Any,
+        app_controller
     ):
-        self.input_directories = kwargs['input_directories']
-        self.out_directory = kwargs['out_directory']
-        self.save_format: ImFormat = kwargs['save_format']
+
+        self.app_controller = app_controller
+        # self.input_directories = kwargs['input_directories']
+        # self.out_directory = kwargs['out_directory']
+        # self.save_format: ImFormat = kwargs['save_format']
         
         self.items = []
         self.queue_position = 0
-        self.populate_queue()
+        # self.populate_queue()
 
         self.continue_loading_images = True
         self.continue_saving_image = True
@@ -173,12 +175,18 @@ class ImQueue:
         self.save_remaining_edits()
 
 
-    def populate_queue(self) -> None:
-        in_dirs = self.input_directories.split(' ')
-        for in_dir in in_dirs:
-            for root, sub_dir, files in os.walk(in_dir):
+    def add_directory(self, dir):
+        for root, sub_dir, files in os.walk(dir):
                 for f in files:
                     self.items.append(ImQueueItem(self, os.path.join(root, f)))
+
+
+    # def populate_queue(self) -> None:
+    #     in_dirs = self.input_directories.split(' ')
+    #     for in_dir in in_dirs:
+    #         for root, sub_dir, files in os.walk(in_dir):
+    #             for f in files:
+    #                 self.items.append(ImQueueItem(self, os.path.join(root, f)))
 
     def current(self):
         return self.items[self.queue_position]
@@ -226,7 +234,7 @@ class ImQueue:
             self.queue_position += 1
 
     def add_edit(self, mode, data) -> None:
-        self.items[self.queue_position].add_edit(self.out_directory, mode, data)
+        self.items[self.queue_position].add_edit(self.app_controller.app_window.out_dir_text_box.toPlainText(), mode, data)
 
     @staticmethod
     def add_im_queue_args(parent_parser: ArgumentParser) -> ArgumentParser:

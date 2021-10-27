@@ -1,5 +1,5 @@
-cython
-pgen
-glfw
-imgui[full]
+wheel
+pyinstaller==4.5.1
+PyQt5==5.9.2
+fbs
 opencv-python
