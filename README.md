@@ -4,26 +4,26 @@ A utility for quickly cropping large collections of images.
 
 Inspired by Derrick Schultz's [dataset-tools](https://github.com/dvschultz/dataset-tools).
 
-## Setup
+## Installation
+
+Use installer under releases to install on respective platforms.
+
+## Development
 
 It's suggested that you use Anaconda. Download at: [https://www.anaconda.com/products/individual#Downloads](https://www.anaconda.com/products/individual#Downloads).
 
 ```bash
-conda create -n crop-tool python=3.8 # note 3.9 doesn't seem to work
+conda create -n crop-tool python=3.6 # python version is important
 conda activate
 pip install -r requirements.txt
 ```
 
-## Using
-
-Example
-
+Use fbs commands for running building and deployment. See https://github.com/mherrmann/fbs-tutorial for more info on this process.
+```bash
+fbs run
+fbs freeze
+fbs installer
 ```
-python run.py --input_directories "/path/to/images /another/optional/directory" --save_directory "/path/to/save/directory"
-```
-
-Use 'd' to go forward and 'a' to go backwards. Once you've reached the end of the list press 'esc' to exit and wait for program to close (this ensures all edits are saved properly).
-
 
 # Still TODO
 
